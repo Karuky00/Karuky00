@@ -1,105 +1,85 @@
-- 👋 Hi, I’m @Karuky00
-- 👀 I’m interested in ...
-- 🌱 I’m currently learning ...
-- 💞️ I’m looking to collaborate on ...
-- 📫 How to reach me ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
+#include <windows.h>
+#include <stdio.h> // Agregamos esta línea para usar printf
 
-#include <iostream>
-#include <locale>
+#define ID_LABEL 100
 
-using namespace std;
+LRESULT CALLBACK ProcedimientoVentana(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam); // Corregimos el nombre de la función
 
-// Definición de la clase NodoLista
-class NodoLista {
-public:
-    int numero;
-    NodoLista* izquierda;
-    NodoLista* derecha;
+int WINAPI WinMain(HINSTANCE hIns, HINSTANCE hInstanciaPrevia, LPSTR lpCmdLinea, int nCmdShow) {
+    HWND ventana, hiconUser;
+    HBITMAP hlogoBinario;
+    MSG mensaje;
+    WNDCLASSEX clase;
 
-    NodoLista() : numero(0), izquierda(nullptr), derecha(nullptr) {}
-};
+    clase.cbSize = sizeof(WNDCLASSEX);
+    clase.cbClsExtra = 0;
+    clase.style = CS_HREDRAW | CS_VREDRAW;
+    clase.lpfnWndProc = ProcedimientoVentana; // Corregimos el nombre de la función
+    clase.hInstance = hIns;
+    clase.hIcon = LoadIcon(NULL, IDI_APPLICATION); // Cambiamos NULL por IDI_APPLICATION
+    clase.hIconSm = LoadIcon(NULL, IDI_INFORMATION); // Cambiamos NULL por IDI_INFORMATION
+    clase.hCursor = LoadCursor(NULL, IDC_ARROW);
+    clase.lpszClassName = L"IdentificadorVentana"; // Agregamos 'L' para indicar cadena ampliada
+    clase.hbrBackground = CreateSolidBrush(RGB(21, 232, 189));
 
-// Definición de la clase Lista
-class Lista {
-private:
-    NodoLista* primero;
-    NodoLista* ultimo;
+    if (!RegisterClassEx(&clase)) {
+        MessageBox(NULL, "No se pudo ejecutar la aplicacion", "Error", MB_ICONERROR);
+        return EXIT_FAILURE;
+    }
 
-public:
-    Lista() : primero(nullptr), ultimo(nullptr) {}
+    ventana = CreateWindowEx(0, L"IdentificadorVentana", L"Controles", WS_OVERLAPPEDWINDOW | WS_SYSMENU,
+        400, 80, 580, 630, HWND_DESKTOP, NULL, hIns, NULL);
 
-    void insertar(int num);
-    void imprimirListaIzq();
-    void imprimirListaDer();
-};
+    CreateWindowW(L"Static", L"Ingrese un numero : ", WS_VISIBLE | WS_CHILD | SS_NOTIFY, 90, 100, 150, 20, ventana, (HMENU)ID_LABEL, hIns, NULL);
+    CreateWindowEx(0, "EDIT", "", ES_NUMBER | ES_AUTOHSCROLL | ES_LEFT | WS_CHILD | WS_VISIBLE, 250, 100, 40, 20, ventana, NULL, hIns, NULL);
+    CreateWindowW(L"Static", L"Ingrese un numero : ", WS_VISIBLE | WS_CHILD, 90, 150, 150, 20, ventana, NULL, hIns, NULL);
+    CreateWindowEx(0, "EDIT", "", ES_NUMBER | ES_AUTOHSCROLL | ES_LEFT | WS_CHILD | WS_VISIBLE, 250, 150, 40, 20, ventana, NULL, hIns, NULL);
 
-void Lista::insertar(int num) {
-    NodoLista* q = new NodoLista();
-    q->numero = num;
-    q->izquierda = nullptr;
-    q->derecha = nullptr;
+    ShowWindow(ventana, nCmdShow);
+    UpdateWindow(ventana);
 
-    if (!primero) {
-        primero = q;
-        ultimo = q;
-    } else {
-        ultimo->derecha = q;
-        q->izquierda = ultimo;
-        ultimo = q;
+    while (GetMessage(&mensaje, NULL, 0, 0) > 0) {
+        TranslateMessage(&mensaje);
+        DispatchMessage(&mensaje);
     }
 }
 
-void Lista::imprimirListaIzq() {
-    NodoLista* temp = primero;
-    while (temp) {
-        cout << temp->numero << " ";
-        temp = temp->derecha;
+LRESULT CALLBACK ProcedimientoVentana(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    static HINSTANCE Instancia;
+    switch (msg) {
+    case WM_CREATE: {
+        Instancia = ((LPCREATESTRUCT)lParam)->hInstance;
+        break;
     }
-    cout << endl;
-}
 
-void Lista::imprimirListaDer() {
-    NodoLista* temp = ultimo;
-    while (temp) {
-        cout << temp->numero << " ";
-        temp = temp->izquierda;
-    }
-    cout << endl;
-}
-
-int main() {
-    setlocale(LC_CTYPE, "spanish");
-
-    Lista lista;
-    int opcion;
-
-    do {
-        cout << "\nElige la opción deseada:" << endl;
-        cout << "[1] Insertar un nuevo dato" << endl;
-        cout << "[2] Mostrar los datos de Izq -> Der" << endl;
-        cout << "[3] Mostrar los datos de Der -> Izq" << endl;
-        cout << "[0] Salir" << endl;
-        cin >> opcion;
-
-        switch (opcion) {
-            case 1:
-                int num;
-                cout << "Ingrese el dato: ";
-                cin >> num;
-                lista.insertar(num);
-                break;
-            case 2:
-                lista.imprimirListaIzq();
-                break;
-            case 3:
-                lista.imprimirListaDer();
-                break;
-            default:
-                cout << "¡Opción incorrecta!" << endl;
+    case WM_COMMAND: {
+        switch (LOWORD(wParam)) {
+        case ID_LABEL: {
+            printf("Has hecho un click\n"); // Cambiamos "echo" por "hecho"
+            break;
         }
-    } while (opcion != 0);
+        }
 
+        break;
+    }
+
+    case WM_DESTROY: {
+        PostQuitMessage(0);
+        break;
+    }
+
+    case WM_CTLCOLORSTATIC: {
+        HDC hdcStatic = (HDC)wParam;
+        SetTextColor(hdcStatic, RGB(0, 0, 0));
+        SetBkColor(hdcStatic, RGB(21, 232, 189));
+        return (LRESULT)CreateSolidBrush(RGB(21, 232, 189)); // Cambiamos INT_PTR por LRESULT
+        break;
+    }
+
+    default: {
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+    }
     return 0;
 }
+
